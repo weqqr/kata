@@ -1,4 +1,5 @@
 #include <kata/app/app.hpp>
+#include <kata/ecs/system.hpp>
 #include <kata/render/render.hpp>
 #include <kata/render/window.hpp>
 #include <kata/input/input.hpp>

@@ -563,7 +563,6 @@ void GPUContext::end_frame(CurrentFrame current_frame)
 
     vkCmdPipelineBarrier2(frame.command_list.m_buffer, &dependency_info);
 
-
     frame.command_list.finish();
 
     m_queue_sync.progress++;
@@ -629,5 +628,20 @@ void GPUContext::end_frame(CurrentFrame current_frame)
     }
 
     frame.prev_progress = m_queue_sync.progress;
+}
+
+GPUCommandList& GPUContext::get_command_list_for_frame(CurrentFrame const& frame)
+{
+    return m_swapchain_frames[frame.m_index].command_list;
+}
+
+TextureView GPUContext::get_texture_view_for_frame(CurrentFrame const& frame)
+{
+    auto const& swapchain_frame = m_swapchain_frames[frame.m_index];
+
+    return TextureView {
+        .image_view = swapchain_frame.swapchain_image_view,
+        .image = swapchain_frame.swapchain_image,
+    };
 }
 }

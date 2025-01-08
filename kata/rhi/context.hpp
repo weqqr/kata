@@ -79,6 +79,9 @@ public:
     Result<CurrentFrame> begin_frame();
     void end_frame(CurrentFrame frame);
 
+    GPUCommandList& get_command_list_for_frame(CurrentFrame const& frame);
+    TextureView get_texture_view_for_frame(CurrentFrame const& frame);
+
 private:
     GPUContext(
         VkInstance instance,

@@ -18,15 +18,7 @@ public:
         return m_window;
     }
 
-    void render()
-    {
-        auto [frame, err] = m_context.begin_frame();
-        if (err) {
-            spdlog::error("begin frame error: {}", err.text());
-        }
-
-        m_context.end_frame(frame);
-    }
+    void render();
 
 private:
     Renderer(Window, GPUContext);
