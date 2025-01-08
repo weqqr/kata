@@ -22,12 +22,12 @@ void Renderer::render()
     auto [frame, err] = m_context.begin_frame();
     if (err) {
         spdlog::error("begin frame error: {}", err.text());
+        panic(err);
     }
 
     auto& cmd = m_context.get_command_list_for_frame(frame);
 
     auto size = m_window.inner_size();
-
     cmd.transition_texture_layout(m_context.get_texture_view_for_frame(frame), VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL);
 
     std::vector<TextureView> color_attachments {

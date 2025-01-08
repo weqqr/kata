@@ -32,8 +32,7 @@ void run(App& app)
 
     auto [window, err] = Window::create(1280, 720, "kata");
     if (err) {
-        spdlog::error(err.text());
-        exit(1);
+        panic(err);
     }
 
     glfwSetWindowUserPointer(window.raw(), &app);
@@ -49,8 +48,7 @@ void run(App& app)
 
     auto [renderer, renderer_err] = kata::Renderer::create(std::move(window));
     if (renderer_err) {
-        spdlog::error(renderer_err.text());
-        exit(1);
+        panic(renderer_err);
     }
 
     app.init();

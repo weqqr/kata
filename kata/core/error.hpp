@@ -102,6 +102,8 @@ private:
     T m_value {};
     Error m_error {};
 };
+
+void panic(Error error);
 }
 
 namespace std {
