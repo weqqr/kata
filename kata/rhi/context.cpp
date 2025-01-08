@@ -529,6 +529,40 @@ Result<CurrentFrame> GPUContext::begin_frame()
 void GPUContext::end_frame(CurrentFrame current_frame)
 {
     auto& frame = m_swapchain_frames[current_frame.m_index];
+
+    VkImageMemoryBarrier2 image_barrier {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
+        .srcStageMask = 0,
+        .srcAccessMask = 0,
+        .dstStageMask = 0,
+        .dstAccessMask = 0,
+        .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+        .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+        .srcQueueFamilyIndex = 0,
+        .dstQueueFamilyIndex = 0,
+        .image = frame.swapchain_image,
+        .subresourceRange = {
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+            .baseMipLevel = 0,
+            .levelCount = 1,
+            .baseArrayLayer = 0,
+            .layerCount = 1,
+        },
+    };
+
+    VkDependencyInfo dependency_info {
+        .sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
+        .memoryBarrierCount = 0,
+        .pMemoryBarriers = nullptr,
+        .bufferMemoryBarrierCount = 0,
+        .pBufferMemoryBarriers = nullptr,
+        .imageMemoryBarrierCount = 1,
+        .pImageMemoryBarriers = &image_barrier,
+    };
+
+    vkCmdPipelineBarrier2(frame.command_list.m_buffer, &dependency_info);
+
+
     frame.command_list.finish();
 
     m_queue_sync.progress++;
