@@ -470,6 +470,7 @@ GPUContext::~GPUContext()
 
         vkDestroySemaphore(m_device, m_queue_sync.present_semaphore, nullptr);
         vkDestroySemaphore(m_device, m_queue_sync.timeline_semaphore, nullptr);
+        vkDestroySemaphore(m_device, m_queue_sync.next_acquire_semaphore, nullptr);
 
         if (m_swapchain) {
             vkDestroySwapchainKHR(m_device, m_swapchain, nullptr);
@@ -573,7 +574,7 @@ void GPUContext::end_frame(CurrentFrame current_frame)
     };
 
     std::array<VkSemaphore, 1> wait_semaphores {
-        m_queue_sync.next_acquire_semaphore
+        frame.acquire_semaphore,
     };
     std::array<VkSemaphore, 2> signal_semaphores {
         m_queue_sync.timeline_semaphore,
