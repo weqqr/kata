@@ -16,6 +16,7 @@ add_library(kata STATIC
     kata/core/error.cpp
     kata/ecs/id_allocator.cpp
     kata/ecs/registry.cpp
+    kata/ecs/system.cpp
     kata/input/input.cpp
     kata/render/render.cpp
     kata/render/window.cpp
