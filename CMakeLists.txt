@@ -23,6 +23,7 @@ include(slangTargets)
 
 target_include_directories(slang::slang INTERFACE deps/slang/include)
 configure_file(deps/slang/bin/slang.dll slang.dll COPYONLY)
+configure_file(deps/slang/bin/slang-glslang.dll slang-glslang.dll COPYONLY)
 
 # GLFW
 add_subdirectory(deps/glfw)

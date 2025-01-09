@@ -68,7 +68,12 @@ void run(App& app)
         panic(compiler_err);
     }
 
-    compiler.compile();
+    auto [bytecode, shader_err] = compiler.compile_module("material", "vertex_main");
+    if (shader_err) {
+        panic(shader_err);
+    }
+
+    spdlog::info("bytecode len: {}", bytecode.size());
 
     auto [window, err] = Window::create(1280, 720, "kata");
     if (err) {
