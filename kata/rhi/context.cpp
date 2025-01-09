@@ -22,9 +22,9 @@ static Result<VkInstance> create_instance()
 
     VkApplicationInfo application_info {
         .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-        .pApplicationName = "blaze",
+        .pApplicationName = "kata",
         .applicationVersion = 1,
-        .pEngineName = "blaze",
+        .pEngineName = "kata",
         .engineVersion = 1,
         .apiVersion = VK_API_VERSION_1_3,
     };
@@ -257,8 +257,9 @@ Result<VkDevice> create_device(SelectedPhysicalDevice physical_device)
 }
 
 struct SwapchainCreateInfo {
-    uint32_t width;
-    uint32_t height;
+    uint32_t width { 0 };
+    uint32_t height { 0 };
+    VkSwapchainKHR old_swapchain = VK_NULL_HANDLE;
 };
 
 Result<VkSwapchainKHR> create_swapchain(
@@ -267,6 +268,10 @@ Result<VkSwapchainKHR> create_swapchain(
     VkSurfaceKHR surface,
     SwapchainCreateInfo info)
 {
+    // FIXME: Available surface extent should be checked before creating swapchain.
+    VkSurfaceCapabilitiesKHR capabilities;
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physical_device.device, surface, &capabilities);
+
     VkSwapchainCreateInfoKHR create_info {
         .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
         .surface = surface,
@@ -286,7 +291,7 @@ Result<VkSwapchainKHR> create_swapchain(
         .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
         .presentMode = VK_PRESENT_MODE_FIFO_KHR,
         .clipped = VK_TRUE,
-        .oldSwapchain = nullptr,
+        .oldSwapchain = info.old_swapchain,
     };
 
     VkSwapchainKHR swapchain { VK_NULL_HANDLE };
@@ -643,5 +648,46 @@ TextureView GPUContext::get_texture_view_for_frame(CurrentFrame const& frame)
         .image_view = swapchain_frame.swapchain_image_view,
         .image = swapchain_frame.swapchain_image,
     };
+}
+
+void GPUContext::resize_swapchain(uint32_t width, uint32_t height)
+{
+    spdlog::info("recreating swapchain: {}x{}", width, height);
+
+    // Wait until render queue is finished before destroying old swapchain
+    vkQueueWaitIdle(m_queue);
+
+    // Get rid of old frames
+    for (auto& frame : m_swapchain_frames) {
+        vkDestroySemaphore(m_device, frame.acquire_semaphore, nullptr);
+        vkDestroyImageView(m_device, frame.swapchain_image_view, nullptr);
+    }
+
+    m_swapchain_frames.clear();
+
+    // Create new swapchain
+
+    SwapchainCreateInfo swapchain_info {
+        .width = width,
+        .height = height,
+        .old_swapchain = m_swapchain,
+    };
+
+    auto [swapchain, swapchain_err] = create_swapchain(m_device, m_physical_device, m_surface, swapchain_info);
+    if (swapchain_err) {
+        panic(swapchain_err);
+    }
+
+    auto [swapchain_frames, frames_err] = create_swapchain_frames(m_device, swapchain, m_command_pool, m_physical_device.surface_format.format);
+    if (frames_err) {
+        panic(frames_err);
+    }
+
+    m_swapchain_frames = std::move(swapchain_frames);
+
+    vkDestroySwapchainKHR(m_device, m_swapchain, nullptr);
+    m_swapchain = swapchain;
+
+    spdlog::info("  swapchain resized to {}x{}", width, height);
 }
 }

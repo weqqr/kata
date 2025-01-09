@@ -48,4 +48,9 @@ void Renderer::render()
 
     m_context.end_frame(frame);
 }
+
+void Renderer::resize(Window::Size size)
+{
+    m_context.resize_swapchain(size.width, size.height);
+}
 }

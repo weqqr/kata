@@ -20,6 +20,8 @@ public:
 
     void render();
 
+    void resize(Window::Size size);
+
 private:
     Renderer(Window, GPUContext);
 

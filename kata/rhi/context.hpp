@@ -82,6 +82,8 @@ public:
     GPUCommandList& get_command_list_for_frame(CurrentFrame const& frame);
     TextureView get_texture_view_for_frame(CurrentFrame const& frame);
 
+    void resize_swapchain(uint32_t width, uint32_t height);
+
 private:
     GPUContext(
         VkInstance instance,
