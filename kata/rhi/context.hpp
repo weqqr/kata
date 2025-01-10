@@ -2,6 +2,7 @@
 
 #include <kata/render/window.hpp>
 #include <kata/rhi/command.hpp>
+#include <kata/rhi/pipeline.hpp>
 #include <string>
 #include <vector>
 #include <volk.h>
@@ -83,6 +84,8 @@ public:
     TextureView get_texture_view_for_frame(CurrentFrame const& frame);
 
     void resize_swapchain(uint32_t width, uint32_t height);
+
+    Result<GPURenderPipeline> create_render_pipeline(GPURenderPipelineDesc desc);
 
 private:
     GPUContext(

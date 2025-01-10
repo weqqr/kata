@@ -44,6 +44,7 @@ add_library(kata STATIC
     kata/resource/shader.cpp
     kata/rhi/command.cpp
     kata/rhi/context.cpp
+    kata/rhi/pipeline.cpp
 )
 target_compile_features(kata PUBLIC cxx_std_20)
 target_link_libraries(kata glfw volk spdlog slang::slang)

@@ -690,4 +690,9 @@ void GPUContext::resize_swapchain(uint32_t width, uint32_t height)
 
     spdlog::info("  swapchain resized to {}x{}", width, height);
 }
+
+Result<GPURenderPipeline> GPUContext::create_render_pipeline(GPURenderPipelineDesc desc)
+{
+    return GPURenderPipeline::create(m_device, desc);
+}
 }

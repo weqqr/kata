@@ -1,4 +1,5 @@
 #include <kata/render/render.hpp>
+#include <kata/rhi/pipeline.hpp>
 
 namespace kata {
 Result<Renderer> Renderer::create(Window window)
@@ -15,6 +16,13 @@ Renderer::Renderer(Window window, GPUContext context)
     : m_window(std::move(window))
     , m_context(std::move(context))
 {
+    auto [pipeline, err] = m_context.create_render_pipeline(GPURenderPipelineDesc {
+
+    });
+
+    if (err) {
+        panic(err);
+    }
 }
 
 void Renderer::render()
