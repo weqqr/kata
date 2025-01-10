@@ -103,7 +103,7 @@ private:
     Error m_error {};
 };
 
-void panic(Error error);
+void panic(Error error, std::source_location const location = std::source_location::current());
 }
 
 namespace std {
