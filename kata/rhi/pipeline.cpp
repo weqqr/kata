@@ -62,6 +62,14 @@ Result<GPURenderPipeline> GPURenderPipeline::create(VkDevice device, GPURenderPi
         .primitiveRestartEnable = false,
     };
 
+    VkPipelineViewportStateCreateInfo viewport_state_create_info {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
+        .viewportCount = 1,
+        .pViewports = nullptr,
+        .scissorCount = 1,
+        .pScissors = nullptr,
+    };
+
     VkPipelineRasterizationStateCreateInfo rasterization_state_create_info {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
         .depthClampEnable = VK_FALSE,
@@ -76,10 +84,31 @@ Result<GPURenderPipeline> GPURenderPipeline::create(VkDevice device, GPURenderPi
         .lineWidth = 1,
     };
 
+    VkPipelineMultisampleStateCreateInfo multisample_state_create_info {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
+        .rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,
+        .sampleShadingEnable = VK_FALSE,
+        .minSampleShading = 0,
+        .pSampleMask = 0,
+        .alphaToCoverageEnable = VK_FALSE,
+        .alphaToOneEnable = VK_FALSE,
+    };
+
     VkPipelineColorBlendStateCreateInfo color_blend_state_create_info {
         .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
         .logicOpEnable = VK_FALSE,
         .logicOp = VK_LOGIC_OP_SET,
+    };
+
+    std::array<VkDynamicState, 2> dynamic_states {
+        VK_DYNAMIC_STATE_VIEWPORT,
+        VK_DYNAMIC_STATE_SCISSOR,
+    };
+
+    VkPipelineDynamicStateCreateInfo dynamic_state_create_info {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
+        .dynamicStateCount = uint32_t(dynamic_states.size()),
+        .pDynamicStates = dynamic_states.data(),
     };
 
     //
@@ -95,7 +124,7 @@ Result<GPURenderPipeline> GPURenderPipeline::create(VkDevice device, GPURenderPi
         .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
         .stage = VK_SHADER_STAGE_VERTEX_BIT,
         .module = vertex_module,
-        .pName = "vertex_main",
+        .pName = "main",
         .pSpecializationInfo = nullptr,
     };
 
@@ -103,7 +132,7 @@ Result<GPURenderPipeline> GPURenderPipeline::create(VkDevice device, GPURenderPi
         .sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
         .stage = VK_SHADER_STAGE_FRAGMENT_BIT,
         .module = fragment_module,
-        .pName = "fragment_main",
+        .pName = "main",
         .pSpecializationInfo = nullptr,
     };
 
@@ -138,12 +167,12 @@ Result<GPURenderPipeline> GPURenderPipeline::create(VkDevice device, GPURenderPi
         .pVertexInputState = &vertex_input_state_create_info,
         .pInputAssemblyState = &input_assembly_state_create_info,
         .pTessellationState = nullptr,
-        .pViewportState = nullptr,
+        .pViewportState = &viewport_state_create_info,
         .pRasterizationState = &rasterization_state_create_info,
-        .pMultisampleState = nullptr,
+        .pMultisampleState = &multisample_state_create_info,
         .pDepthStencilState = nullptr,
         .pColorBlendState = &color_blend_state_create_info,
-        .pDynamicState = nullptr,
+        .pDynamicState = &dynamic_state_create_info,
         .layout = pipeline_layout,
         .renderPass = VK_NULL_HANDLE,
         .subpass = 0,
@@ -153,11 +182,15 @@ Result<GPURenderPipeline> GPURenderPipeline::create(VkDevice device, GPURenderPi
 
     VkPipeline pipeline = VK_NULL_HANDLE;
     auto result = vkCreateGraphicsPipelines(device, nullptr, 1, &create_info, nullptr, &pipeline);
-    if (result == VK_SUCCESS) {
+
+    vkDestroyShaderModule(device, vertex_module, nullptr);
+    vkDestroyShaderModule(device, fragment_module, nullptr);
+
+    if (result != VK_SUCCESS) {
         return Error::with_message("unable to create render pipeline");
     }
 
-    return GPURenderPipeline();
+    return GPURenderPipeline(device, pipeline_layout, pipeline);
 }
 
 GPURenderPipeline::~GPURenderPipeline()

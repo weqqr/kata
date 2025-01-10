@@ -2,22 +2,33 @@
 #include <kata/rhi/pipeline.hpp>
 
 namespace kata {
-Result<Renderer> Renderer::create(Window window)
+Result<Renderer> Renderer::create(Window window, ShaderCompiler& compiler)
 {
     auto [context, err] = GPUContext::with_window(window);
     if (err) {
         return err;
     }
 
-    return Renderer(std::move(window), std::move(context));
+    return Renderer(std::move(window), std::move(context), compiler);
 }
 
-Renderer::Renderer(Window window, GPUContext context)
+Renderer::Renderer(Window window, GPUContext context, ShaderCompiler& compiler)
     : m_window(std::move(window))
     , m_context(std::move(context))
 {
-    auto [pipeline, err] = m_context.create_render_pipeline(GPURenderPipelineDesc {
+    auto [vertex_spirv, vertex_err] = compiler.compile_module_to_spirv("material", "vertex_main");
+    if (vertex_err) {
+        panic(vertex_err);
+    }
 
+    auto [fragment_spirv, fragment_err] = compiler.compile_module_to_spirv("material", "fragment_main");
+    if (fragment_err) {
+        panic(fragment_err);
+    }
+
+    auto [pipeline, err] = m_context.create_render_pipeline(GPURenderPipelineDesc {
+        .vertex_spirv = vertex_spirv,
+        .fragment_spirv = fragment_spirv,
     });
 
     if (err) {

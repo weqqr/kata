@@ -1,4 +1,6 @@
 #include <format>
+#include <iostream>
+#include <fstream>
 #include <kata/resource/shader.hpp>
 
 namespace kata {
@@ -10,11 +12,12 @@ Result<ShaderCompiler> ShaderCompiler::create()
     return ShaderCompiler(global_session);
 }
 
-Result<ShaderBytecode> ShaderCompiler::compile_module(std::string const& name, std::string const& entry_point)
+Result<SpirVBytecode> ShaderCompiler::compile_module_to_spirv(std::string const& name, std::string const& entry_point)
 {
     slang::TargetDesc target_desc {};
     target_desc.format = SLANG_SPIRV;
-    target_desc.profile = m_global_session->findProfile("spirv_1_6");
+    target_desc.flags = SLANG_TARGET_FLAG_GENERATE_SPIRV_DIRECTLY;
+    target_desc.profile = m_global_session->findProfile("spirv");
 
     char const* search_paths[] = { "../resources/shader" };
 
@@ -79,9 +82,16 @@ Result<ShaderBytecode> ShaderCompiler::compile_module(std::string const& name, s
     auto bytecode_ptr = static_cast<uint8_t const*>(kernel->getBufferPointer());
     auto bytecode_size = kernel->getBufferSize();
 
-    ShaderBytecode bytecode(bytecode_size);
+    if (bytecode_size == 0 || bytecode_size % 4 != 0) {
+        return Error::with_message("slang generated SPIR-V bytecode with invalid size");
+    }
 
-    std::copy(bytecode_ptr, bytecode_ptr + bytecode_size, bytecode.data());
+    SpirVBytecode bytecode(bytecode_size / 4);
+
+    std::copy(bytecode_ptr, bytecode_ptr + bytecode_size, reinterpret_cast<uint8_t*>(bytecode.data()));
+
+    std::ofstream of(name + "_" + entry_point + ".bin");
+    of.write(reinterpret_cast<const char*>(bytecode_ptr), bytecode_size);
 
     return bytecode;
 }

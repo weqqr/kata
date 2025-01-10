@@ -37,6 +37,13 @@ public:
     static Result<GPURenderPipeline> create(VkDevice device, GPURenderPipelineDesc desc);
 
 private:
+    GPURenderPipeline(VkDevice device, VkPipelineLayout pipeline_layout, VkPipeline pipeline)
+        : m_device(device)
+        , m_pipeline_layout(pipeline_layout)
+        , m_pipeline(pipeline)
+    {
+    }
+
     VkDevice m_device { VK_NULL_HANDLE };
     VkPipelineLayout m_pipeline_layout { VK_NULL_HANDLE };
     VkPipeline m_pipeline { VK_NULL_HANDLE };

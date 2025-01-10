@@ -7,7 +7,7 @@
 #include <vector>
 
 namespace kata {
-using ShaderBytecode = std::vector<uint8_t>;
+using SpirVBytecode = std::vector<uint32_t>;
 
 class ShaderCompiler {
 public:
@@ -15,7 +15,7 @@ public:
 
     static Result<ShaderCompiler> create();
 
-    Result<ShaderBytecode> compile_module(std::string const& name, std::string const& entry_point);
+    Result<SpirVBytecode> compile_module_to_spirv(std::string const& name, std::string const& entry_point);
 
 private:
     ShaderCompiler(
